@@ -38,7 +38,7 @@ reth-optimism-evm = { workspace = true }
 reth-optimism-chainspec = { workspace = true }
 reth-optimism-primitives.workspace = true
 reth-ethereum-primitives.workspace = true
-reth-primitives-traits  = { workspace = true, features = ["secp256k1"] }
+reth-primitives-traits = { workspace = true, features = ["secp256k1"] }
 reth-trie.workspace = true
 reth-errors.workspace = true
 reth-chainspec.workspace = true
@@ -58,6 +58,9 @@ alloy-rpc-types.workspace = true
 
 # op
 op-alloy-network.workspace = true
+
+# evolve
+ev-revm.workspace = true
 
 [dev-dependencies]
 alloy-primitives.workspace = true

@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
 use alloy_consensus::{BlockHeader, Header, TxReceipt};
+use alloy_evm::eth::EthEvmFactory;
 use alloy_network::BlockResponse;
 use alloy_primitives::{Bloom, Sealable};
 use alloy_provider::{Network, Provider};
+use ev_revm::{with_ev_handler, EvEvmFactory};
+use reth_chainspec::ChainSpec;
 use reth_chainspec::ChainSpec;
 use reth_evm::{
     execute::{BasicBlockExecutor, Executor},
@@ -28,6 +31,9 @@ pub type EthHostExecutor = HostExecutor<EthEvmConfig<ChainSpec, CustomEvmFactory
 
 pub type OpHostExecutor = HostExecutor<OpEvmConfig, OpChainSpec>;
 
+pub type EvolveEvmConfig = EthEvmConfig<ChainSpec, EvEvmFactory<EthEvmFactory>>;
+pub type EvolveHostExecutor = HostExecutor<EvolveEvmConfig, ChainSpec>;
+
 /// An executor that fetches data from a [Provider] to execute blocks in the [ClientExecutor].
 #[derive(Debug, Clone)]
 pub struct HostExecutor<C: ConfigureEvm, CS> {
@@ -44,6 +50,15 @@ impl EthHostExecutor {
             ),
             chain_spec,
         }
+    }
+}
+
+impl EvolveHostExecutor {
+    pub fn evolve(chain_spec: Arc<ChainSpec>) -> Self {
+        let base_config = EthEvmConfig::new(chain_spec.clone());
+        let cfg = with_ev_handler(base_config, None, None, None);
+
+        HostExecutor::new(cfg, chain_spec)
     }
 }
 
