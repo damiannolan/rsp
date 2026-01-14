@@ -1,6 +1,11 @@
 use std::sync::Arc;
 
 use alloy_consensus::{BlockHeader, Header};
+use alloy_evm::eth::EthEvmFactory;
+use ev_revm::{
+    with_ev_handler, BaseFeeRedirect, BaseFeeRedirectSettings, ContractSizeLimitSettings,
+    EvEvmFactory, MintPrecompileSettings,
+};
 use itertools::Itertools;
 use reth_chainspec::ChainSpec;
 use reth_errors::BlockExecutionError;
@@ -12,11 +17,12 @@ use reth_evm_ethereum::EthEvmConfig;
 use reth_execution_types::ExecutionOutcome;
 use reth_primitives_traits::Block;
 use reth_trie::KeccakKeyHasher;
-use revm::database::WrapDatabaseRef;
+use revm::{database::WrapDatabaseRef, install_crypto};
 use revm_primitives::Address;
+use rsp_primitives::genesis::{EvolveConfig, Genesis};
 
 use crate::{
-    custom::CustomEvmFactory,
+    custom::{CustomCrypto, CustomEvmFactory},
     error::ClientError,
     into_primitives::FromInput,
     io::{ClientExecutorInput, TrieDB, WitnessInput},
@@ -37,6 +43,10 @@ pub type EthClientExecutor = ClientExecutor<EthEvmConfig<ChainSpec, CustomEvmFac
 #[cfg(feature = "optimism")]
 pub type OpClientExecutor =
     ClientExecutor<reth_optimism_evm::OpEvmConfig, reth_optimism_chainspec::OpChainSpec>;
+
+pub type EvolveEvmFactory = EvEvmFactory<EthEvmFactory>;
+pub type EvolveEvmConfig = EthEvmConfig<ChainSpec, EvolveEvmFactory>;
+pub type EvolveClientExecutor = ClientExecutor<EvolveEvmConfig, ChainSpec>;
 
 /// An executor that executes a block inside a zkVM.
 #[derive(Debug, Clone)]
@@ -150,6 +160,8 @@ where
 
 impl EthClientExecutor {
     pub fn eth(chain_spec: Arc<ChainSpec>, custom_beneficiary: Option<Address>) -> Self {
+        install_crypto(CustomCrypto::default());
+
         Self {
             evm_config: EthEvmConfig::new_with_evm_factory(
                 chain_spec.clone(),
@@ -163,8 +175,66 @@ impl EthClientExecutor {
 #[cfg(feature = "optimism")]
 impl OpClientExecutor {
     pub fn optimism(chain_spec: Arc<reth_optimism_chainspec::OpChainSpec>) -> Self {
+        install_crypto(CustomCrypto::default());
+
         Self {
             evm_config: reth_optimism_evm::OpEvmConfig::optimism(chain_spec.clone()),
+            chain_spec,
+        }
+    }
+}
+
+impl EvolveClientExecutor {
+    /// Creates an Evolve client executor with configuration parsed from genesis.
+    /// Note: custom_beneficiary is not currently supported with evolve configuration.
+    pub fn evolve(
+        chain_spec: Arc<ChainSpec>,
+        _custom_beneficiary: Option<Address>,
+        genesis: &Genesis,
+    ) -> Self {
+        install_crypto(CustomCrypto::default());
+
+        // Parse evolve config from genesis
+        let evolve_config = EvolveConfig::from_genesis(genesis);
+
+        // Create base config with standard EthEvmFactory
+        let base_config = EthEvmConfig::new(chain_spec.clone());
+
+        // Build settings from evolve config
+        let redirect = evolve_config.as_ref().and_then(|c| {
+            c.base_fee_sink.map(|sink| {
+                BaseFeeRedirectSettings::new(
+                    BaseFeeRedirect::new(sink),
+                    c.base_fee_redirect_activation_height.unwrap_or(0),
+                )
+            })
+        });
+
+        let mint_precompile = evolve_config.as_ref().and_then(|c| {
+            c.mint_admin
+                .filter(|a| !a.is_zero())
+                .map(|admin| {
+                    MintPrecompileSettings::new(
+                        admin,
+                        c.mint_precompile_activation_height.unwrap_or(0),
+                    )
+                })
+        });
+
+        let contract_size_limit = evolve_config.as_ref().and_then(|c| {
+            c.contract_size_limit.map(|limit| {
+                ContractSizeLimitSettings::new(
+                    limit,
+                    c.contract_size_limit_activation_height.unwrap_or(0),
+                )
+            })
+        });
+
+        // Wrap with ev handler
+        let evm_config = with_ev_handler(base_config, redirect, mint_precompile, contract_size_limit);
+
+        Self {
+            evm_config,
             chain_spec,
         }
     }

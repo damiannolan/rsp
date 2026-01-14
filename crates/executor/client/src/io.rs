@@ -24,6 +24,8 @@ pub type EthClientExecutorInput = ClientExecutorInput<EthPrimitives>;
 #[cfg(feature = "optimism")]
 pub type OpClientExecutorInput = ClientExecutorInput<reth_optimism_primitives::OpPrimitives>;
 
+pub type EvolveClientExecutorInput = ClientExecutorInput<EthPrimitives>;
+
 /// The input for the client to execute a block and fully verify the STF (state transition
 /// function).
 ///

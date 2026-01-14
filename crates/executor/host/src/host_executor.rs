@@ -5,8 +5,10 @@ use alloy_evm::eth::EthEvmFactory;
 use alloy_network::BlockResponse;
 use alloy_primitives::{Bloom, Sealable};
 use alloy_provider::{Network, Provider};
-use ev_revm::{with_ev_handler, EvEvmFactory};
-use reth_chainspec::ChainSpec;
+use ev_revm::{
+    with_ev_handler, BaseFeeRedirect, BaseFeeRedirectSettings, ContractSizeLimitSettings,
+    EvEvmFactory, MintPrecompileSettings,
+};
 use reth_chainspec::ChainSpec;
 use reth_evm::{
     execute::{BasicBlockExecutor, Executor},
@@ -22,7 +24,7 @@ use revm_primitives::Address;
 use rsp_client_executor::{
     custom::CustomEvmFactory, io::ClientExecutorInput, BlockValidator, IntoInput, IntoPrimitives,
 };
-use rsp_primitives::genesis::Genesis;
+use rsp_primitives::genesis::{EvolveConfig, Genesis};
 use rsp_rpc_db::RpcDb;
 
 use crate::HostError;
@@ -31,7 +33,8 @@ pub type EthHostExecutor = HostExecutor<EthEvmConfig<ChainSpec, CustomEvmFactory
 
 pub type OpHostExecutor = HostExecutor<OpEvmConfig, OpChainSpec>;
 
-pub type EvolveEvmConfig = EthEvmConfig<ChainSpec, EvEvmFactory<EthEvmFactory>>;
+pub type EvolveEvmFactory = EvEvmFactory<EthEvmFactory>;
+pub type EvolveEvmConfig = EthEvmConfig<ChainSpec, EvolveEvmFactory>;
 pub type EvolveHostExecutor = HostExecutor<EvolveEvmConfig, ChainSpec>;
 
 /// An executor that fetches data from a [Provider] to execute blocks in the [ClientExecutor].
@@ -53,18 +56,63 @@ impl EthHostExecutor {
     }
 }
 
-impl EvolveHostExecutor {
-    pub fn evolve(chain_spec: Arc<ChainSpec>) -> Self {
-        let base_config = EthEvmConfig::new(chain_spec.clone());
-        let cfg = with_ev_handler(base_config, None, None, None);
-
-        HostExecutor::new(cfg, chain_spec)
-    }
-}
-
 impl OpHostExecutor {
     pub fn optimism(chain_spec: Arc<OpChainSpec>) -> Self {
         Self { evm_config: OpEvmConfig::optimism(chain_spec.clone()), chain_spec }
+    }
+}
+
+impl EvolveHostExecutor {
+    /// Creates an Evolve host executor with configuration parsed from genesis.
+    /// Note: custom_beneficiary is not currently supported with evolve configuration.
+    pub fn evolve(
+        chain_spec: Arc<ChainSpec>,
+        _custom_beneficiary: Option<Address>,
+        genesis: &Genesis,
+    ) -> Self {
+        // Parse evolve config from genesis
+        let evolve_config = EvolveConfig::from_genesis(genesis);
+
+        // Create base config with standard EthEvmFactory
+        let base_config = EthEvmConfig::new(chain_spec.clone());
+
+        // Build settings from evolve config
+        let redirect = evolve_config.as_ref().and_then(|c| {
+            c.base_fee_sink.map(|sink| {
+                BaseFeeRedirectSettings::new(
+                    BaseFeeRedirect::new(sink),
+                    c.base_fee_redirect_activation_height.unwrap_or(0),
+                )
+            })
+        });
+
+        let mint_precompile = evolve_config.as_ref().and_then(|c| {
+            c.mint_admin
+                .filter(|a| !a.is_zero())
+                .map(|admin| {
+                    MintPrecompileSettings::new(
+                        admin,
+                        c.mint_precompile_activation_height.unwrap_or(0),
+                    )
+                })
+        });
+
+        let contract_size_limit = evolve_config.as_ref().and_then(|c| {
+            c.contract_size_limit.map(|limit| {
+                ContractSizeLimitSettings::new(
+                    limit,
+                    c.contract_size_limit_activation_height.unwrap_or(0),
+                )
+            })
+        });
+
+        // Wrap with ev handler
+        let evm_config = with_ev_handler(base_config, redirect, mint_precompile, contract_size_limit);
+
+        Self {
+            evm_config,
+            chain_spec,
+        }
     }
 }
 

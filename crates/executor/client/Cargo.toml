@@ -41,6 +41,7 @@ reth-chainspec.workspace = true
 # revm
 revm.workspace = true
 revm-primitives.workspace = true
+kzg-rs.workspace = true
 
 # alloy
 alloy-evm.workspace = true
@@ -53,6 +54,8 @@ alloy-rpc-types.workspace = true
 op-alloy-network = { workspace = true, optional = true }
 op-alloy-rpc-types = { workspace = true, optional = true }
 
+# evolve
+ev-revm.workspace = true
 
 [features]
 optimism = [
