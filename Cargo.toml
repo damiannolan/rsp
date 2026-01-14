@@ -59,23 +59,23 @@ sp1-prover = "5.1.0"
 sp1-sdk = "5.1.0"
 
 # reth
-reth-primitives-traits = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-consensus-common = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-evm-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-optimism-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-optimism-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-storage-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-trie = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-optimism-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-execution-types = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-ethereum-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false, features = ["serde"] }
-reth-optimism-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
-reth-optimism-forks = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.4", default-features = false }
+reth-primitives-traits = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-consensus-common = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-evm-ethereum = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-optimism-evm = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-optimism-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-storage-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-trie = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-optimism-chainspec = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-execution-types = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-errors = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-ethereum-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-ethereum-primitives = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false, features = ["serde"] }
+reth-optimism-consensus = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
+reth-optimism-forks = { git = "https://github.com/paradigmxyz/reth", tag = "v1.8.3", default-features = false }
 
 # revm
 revm = { version = "29.0.1", features = [
@@ -129,7 +129,7 @@ op-alloy-network = "0.20.0"
 op-alloy-rpc-types = "0.20.0"
 
 # evolve
-ev-revm = { git = "https://github.com/evstack/ev-reth", tag = "v0.2.1", package = "ev-revm" }
+ev-revm = { path = "../ev-reth/crates/ev-revm" }
 
 kzg-rs = { git = "https://github.com/succinctlabs/kzg-rs" }
 

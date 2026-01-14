@@ -1,7 +1,9 @@
 use std::marker::PhantomData;
 
+use alloy_evm::eth::EthEvmFactory;
 use alloy_network::Ethereum;
 use alloy_provider::Network;
+use ev_revm::EvEvmFactory;
 use eyre::{eyre, Ok};
 use op_alloy_network::Optimism;
 use reth_chainspec::ChainSpec;
@@ -129,6 +131,34 @@ where
     type Hooks = H;
 
     fn try_into_chain_spec(genesis: &Genesis) -> eyre::Result<OpChainSpec> {
+        let spec = genesis.try_into()?;
+        Ok(spec)
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct EvolveExecutorComponents<H, P = EnvProver> {
+    phantom: PhantomData<(H, P)>,
+}
+
+impl<H, P> ExecutorComponents for EvolveExecutorComponents<H, P>
+where
+    H: ExecutionHooks,
+    P: Prover<CpuProverComponents> + MaybeProveWithCycles + 'static,
+{
+    type Prover = P;
+
+    type Network = Ethereum;
+
+    type Primitives = EthPrimitives;
+
+    type EvmConfig = EthEvmConfig<ChainSpec, EvEvmFactory<EthEvmFactory>>;
+
+    type ChainSpec = ChainSpec;
+
+    type Hooks = H;
+
+    fn try_into_chain_spec(genesis: &Genesis) -> eyre::Result<ChainSpec> {
         let spec = genesis.try_into()?;
         Ok(spec)
     }
