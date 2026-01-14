@@ -64,7 +64,6 @@ impl OpHostExecutor {
 
 impl EvolveHostExecutor {
     /// Creates an Evolve host executor with configuration parsed from genesis.
-    /// Note: custom_beneficiary is not currently supported with evolve configuration.
     pub fn evolve(
         chain_spec: Arc<ChainSpec>,
         _custom_beneficiary: Option<Address>,
@@ -73,7 +72,7 @@ impl EvolveHostExecutor {
         // Parse evolve config from genesis
         let evolve_config = EvolveConfig::from_genesis(genesis);
 
-        // Create base config with standard EthEvmFactory
+        // Create base config with standard EthEvmFactory (matches ev-reth)
         let base_config = EthEvmConfig::new(chain_spec.clone());
 
         // Build settings from evolve config
