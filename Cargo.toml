@@ -129,7 +129,7 @@ op-alloy-network = "0.20.0"
 op-alloy-rpc-types = "0.20.0"
 
 # evolve
-ev-revm = { path = "../ev-reth/crates/ev-revm" }
+ev-revm = { git = "https://github.com/jonas089/ev-reth", branch="jonas/rsp" }
 
 kzg-rs = { git = "https://github.com/succinctlabs/kzg-rs" }
 
