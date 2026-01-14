@@ -17,12 +17,12 @@ use reth_evm_ethereum::EthEvmConfig;
 use reth_execution_types::ExecutionOutcome;
 use reth_primitives_traits::Block;
 use reth_trie::KeccakKeyHasher;
-use revm::{database::WrapDatabaseRef, install_crypto};
+use revm::database::WrapDatabaseRef;
 use revm_primitives::Address;
 use rsp_primitives::genesis::{EvolveConfig, Genesis};
 
 use crate::{
-    custom::{CustomCrypto, CustomEvmFactory},
+    custom::CustomEvmFactory,
     error::ClientError,
     into_primitives::FromInput,
     io::{ClientExecutorInput, TrieDB, WitnessInput},
@@ -160,8 +160,6 @@ where
 
 impl EthClientExecutor {
     pub fn eth(chain_spec: Arc<ChainSpec>, custom_beneficiary: Option<Address>) -> Self {
-        install_crypto(CustomCrypto::default());
-
         Self {
             evm_config: EthEvmConfig::new_with_evm_factory(
                 chain_spec.clone(),
@@ -175,8 +173,6 @@ impl EthClientExecutor {
 #[cfg(feature = "optimism")]
 impl OpClientExecutor {
     pub fn optimism(chain_spec: Arc<reth_optimism_chainspec::OpChainSpec>) -> Self {
-        install_crypto(CustomCrypto::default());
-
         Self {
             evm_config: reth_optimism_evm::OpEvmConfig::optimism(chain_spec.clone()),
             chain_spec,
@@ -191,8 +187,6 @@ impl EvolveClientExecutor {
         _custom_beneficiary: Option<Address>,
         genesis: &Genesis,
     ) -> Self {
-        install_crypto(CustomCrypto::default());
-
         // Parse evolve config from genesis
         let evolve_config = EvolveConfig::from_genesis(genesis);
 
