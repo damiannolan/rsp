@@ -33,8 +33,8 @@ pub type EthHostExecutor = HostExecutor<EthEvmConfig<ChainSpec, CustomEvmFactory
 
 pub type OpHostExecutor = HostExecutor<OpEvmConfig, OpChainSpec>;
 
-pub type EvolveEvmFactory = EvEvmFactory<EthEvmFactory>;
-pub type EvolveEvmConfig = EthEvmConfig<ChainSpec, EvolveEvmFactory>;
+pub(crate) type EvolveEvmFactory = EvEvmFactory<EthEvmFactory>;
+pub(crate) type EvolveEvmConfig = EthEvmConfig<ChainSpec, EvolveEvmFactory>;
 pub type EvolveHostExecutor = HostExecutor<EvolveEvmConfig, ChainSpec>;
 
 /// An executor that fetches data from a [Provider] to execute blocks in the [ClientExecutor].
